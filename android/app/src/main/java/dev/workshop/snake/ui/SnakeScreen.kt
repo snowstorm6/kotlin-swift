@@ -58,8 +58,9 @@ import dev.workshop.snake.game.Direction
 import dev.workshop.snake.game.FileScoreStore
 import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
-import dev.workshop.snake.game.GameState
 import dev.workshop.snake.game.HighScore
+import dev.workshop.snake.game.HighScoreRecorder
+import dev.workshop.snake.game.LoggingStats
 import dev.workshop.snake.game.overlayText
 import java.io.File
 import kotlin.math.abs
@@ -79,9 +80,10 @@ private fun FoodLook.color() = when (this) {
 
 @Composable
 fun SnakeScreen() {
-    val game = remember { Game() }
     val context = LocalContext.current
-    val highScore = remember { HighScore(FileScoreStore(File(context.filesDir, "highscore.txt"))) }
+    val stats = remember { LoggingStats() }
+    val recorder = remember { HighScoreRecorder(HighScore(FileScoreStore(File(context.filesDir, "highscore.txt")))) }
+    val game = remember { Game(listeners = listOf(stats, recorder)) }
     // Game là object bình thường, Compose không tự biết nó đổi. Mỗi tick tăng `frame` để vẽ lại.
     var frame by remember { mutableLongStateOf(0L) }
     val focus = remember { FocusRequester() }
@@ -91,7 +93,6 @@ fun SnakeScreen() {
         while (true) {
             delay(game.stepMillis)
             game.tick()
-            (game.state as? GameState.GameOver)?.let { highScore.submit(it.score) }
             frame++
         }
     }
@@ -130,13 +131,15 @@ fun SnakeScreen() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Điểm: ${game.score}   Kỷ lục: ${highScore.best}",
+                text = "Điểm: ${game.score}   Kỷ lục: ${recorder.highScore.best}",
                 color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Màn ${game.levelNumber} · ${game.level.name}",
+                text = "Màn ${game.levelNumber} · ${game.level.name}\n" +
+                    "${stats.stats.foodsEaten} mồi · ${stats.stats.gamesPlayed} ván   ${stats.lastEvent}",
+                textAlign = TextAlign.Center,
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 16.sp,
             )

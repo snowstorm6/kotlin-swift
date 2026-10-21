@@ -27,8 +27,9 @@ import dev.workshop.snake.game.Direction
 import dev.workshop.snake.game.FileScoreStore
 import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
-import dev.workshop.snake.game.GameState
 import dev.workshop.snake.game.HighScore
+import dev.workshop.snake.game.HighScoreRecorder
+import dev.workshop.snake.game.LoggingStats
 import dev.workshop.snake.game.Point
 import dev.workshop.snake.game.overlayText
 import java.io.File
@@ -40,9 +41,13 @@ private const val ESC = "\u001b"
 
 fun main() {
     // ── A. Chuẩn bị ──────────────────────────────────────────────────────────────
-    val game = Game()
-    // Kỷ lục lưu trong file ở thư mục home, nên tắt game mở lại vẫn còn (Make 3).
-    val highScore = HighScore(FileScoreStore(File(System.getProperty("user.home"), ".snake-workshop/kotlin-highscore.txt")))
+    // Observer (Make 5): thống kê và ghi kỷ lục là hai listener. Game tự báo cho chúng khi ăn mồi,
+    // lên màn, thua; game loop không phải tự kiểm tra gì. Kỷ lục lưu trong file ở thư mục home (Make 3).
+    val stats = LoggingStats()
+    val recorder = HighScoreRecorder(
+        HighScore(FileScoreStore(File(System.getProperty("user.home"), ".snake-workshop/kotlin-highscore.txt"))),
+    )
+    val game = Game(listeners = listOf(stats, recorder))
 
     // Hàng đợi phím dùng chung giữa thread đọc phím và game loop. ConcurrentLinkedQueue an toàn khi
     // hai thread cùng đọc/ghi, không cần tự khoá.
@@ -79,9 +84,8 @@ fun main() {
         }
         // 2. Luật chơi chạy một bước.
         game.tick()
-        // 3. Ghi kỷ lục nếu vừa thua, rồi vẽ lại.
-        (game.state as? GameState.GameOver)?.let { highScore.submit(it.score) }
-        render(game, highScore)
+        // 3. Vẽ lại.
+        render(game, recorder.highScore, stats)
         // 4. Chờ tới bước sau. Game quyết định nhịp: càng nhiều điểm càng nhanh (Make 2).
         Thread.sleep(game.stepMillis)
     }
@@ -93,10 +97,10 @@ fun main() {
  * khung cũ thay vì in tiếp xuống dưới, nên màn hình không bị nhấp nháy hay trôi.
  * Trong raw mode, xuống dòng phải viết đủ `\r\n`.
  */
-private fun render(game: Game, highScore: HighScore) {
+private fun render(game: Game, highScore: HighScore, stats: LoggingStats) {
     val sb = StringBuilder("$ESC[H")
     sb.append("Điểm: ${game.score}   Kỷ lục: ${highScore.best}   (WASD / mũi tên, Space tạm dừng, q / Esc thoát)\r\n")
-    sb.append("Màn ${game.levelNumber} · ${game.level.name}$ESC[K\r\n")
+    sb.append("Màn ${game.levelNumber} · ${game.level.name}   ${stats.stats.foodsEaten} mồi · ${stats.stats.gamesPlayed} ván   ${stats.lastEvent}$ESC[K\r\n")
     sb.append("╔").append("══".repeat(game.width)).append("╗\r\n")
     for (y in 0 until game.height) {
         sb.append("║")

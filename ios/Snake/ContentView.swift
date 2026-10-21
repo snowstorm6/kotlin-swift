@@ -16,19 +16,29 @@ private let snakeBodyColor = Color(red: 0.25, green: 0.64, blue: 0.30)
 
 struct ContentView: View {
     // Game là struct: mỗi lần tick() sửa nó, SwiftUI thấy @State đổi và vẽ lại.
-    @State private var game = Game()
-    @State private var highScore = HighScore(
-        store: FileScoreStore(url: .documentsDirectory.appending(path: "highscore.txt"))
-    )
+    @State private var stats: LoggingStats
+    @State private var recorder: HighScoreRecorder
+    @State private var game: Game
+
+    init() {
+        let stats = LoggingStats()
+        let recorder = HighScoreRecorder(highScore: HighScore(
+            store: FileScoreStore(url: .documentsDirectory.appending(path: "highscore.txt"))
+        ))
+        _stats = State(initialValue: stats)
+        _recorder = State(initialValue: recorder)
+        _game = State(initialValue: Game(listeners: [stats, recorder]))
+    }
     @FocusState private var focused: Bool
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Điểm: \(game.score)   Kỷ lục: \(highScore.best)")
+            Text("Điểm: \(game.score)   Kỷ lục: \(recorder.highScore.best)")
                 .font(.title2.bold())
                 .foregroundStyle(.white)
 
-            Text("Màn \(game.levelNumber) · \(game.level.name)")
+            Text("Màn \(game.levelNumber) · \(game.level.name)\n\(stats.stats.foodsEaten) mồi · \(stats.stats.gamesPlayed) ván   \(stats.lastEvent)")
+                .multilineTextAlignment(.center)
                 .font(.callout)
                 .foregroundStyle(.white.opacity(0.7))
 
@@ -83,7 +93,6 @@ struct ContentView: View {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(game.stepMillis))
                 game.tick()
-                if case .gameOver(let score) = game.state { highScore.submit(score) }
             }
         }
     }

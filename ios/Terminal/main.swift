@@ -39,10 +39,13 @@ raw.c_cc.17 = 0 // VTIME = 0: read() không đợi thêm chút nào, có gì tr�
 tcsetattr(STDIN_FILENO, TCSANOW, &raw)
 print("\(esc)[?25l\(esc)[2J", terminator: "") // ẩn con trỏ, xoá màn hình
 
-var game = Game()
-var highScore = HighScore(store: FileScoreStore(
+// Observer (Make 5): thống kê và ghi kỷ lục là hai listener. Game tự báo cho chúng khi ăn mồi,
+// lên màn, thua; game loop không phải tự kiểm tra gì. Kỷ lục lưu trong file ở thư mục home (Make 3).
+let stats = LoggingStats()
+let recorder = HighScoreRecorder(highScore: HighScore(store: FileScoreStore(
     url: FileManager.default.homeDirectoryForCurrentUser.appending(path: ".snake-workshop/swift-highscore.txt")
-))
+)))
+var game = Game(listeners: [stats, recorder])
 var running = true
 
 // ── B. Game loop ─────────────────────────────────────────────────────────────────
@@ -72,9 +75,8 @@ while running {
     }
     // 2. Luật chơi chạy một bước.
     game.tick()
-    // 3. Ghi kỷ lục nếu vừa thua, rồi vẽ lại.
-    if case .gameOver(let score) = game.state { highScore.submit(score) }
-    render(game, highScore)
+    // 3. Vẽ lại.
+    render(game, recorder.highScore, stats)
     // 4. Chờ tới bước sau. Game quyết định nhịp: càng nhiều điểm càng nhanh (Make 2).
     usleep(UInt32(game.stepMillis * 1000))
 }
@@ -96,10 +98,10 @@ extension FoodLook {
 /// Vẽ cả màn hình thành một chuỗi rồi in một lần. `ESC[H` đưa con trỏ về góc trên trái để vẽ đè lên
 /// khung cũ thay vì in tiếp xuống dưới, nên màn hình không bị nhấp nháy hay trôi.
 /// Trong raw mode, xuống dòng phải viết đủ `\r\n`.
-func render(_ game: Game, _ highScore: HighScore) {
+func render(_ game: Game, _ highScore: HighScore, _ stats: LoggingStats) {
     var s = "\(esc)[H"
     s += "Điểm: \(game.score)   Kỷ lục: \(highScore.best)   (WASD / mũi tên, Space tạm dừng, q / Esc thoát)\r\n"
-    s += "Màn \(game.levelNumber) · \(game.level.name)\(esc)[K\r\n"
+    s += "Màn \(game.levelNumber) · \(game.level.name)   \(stats.stats.foodsEaten) mồi · \(stats.stats.gamesPlayed) ván   \(stats.lastEvent)\(esc)[K\r\n"
     s += "╔" + String(repeating: "══", count: game.width) + "╗\r\n"
     for y in 0..<game.height {
         s += "║"

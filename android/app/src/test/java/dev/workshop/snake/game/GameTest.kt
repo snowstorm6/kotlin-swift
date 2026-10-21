@@ -211,3 +211,17 @@ class Make4LevelTest {
         assertTrue(game.state is GameState.GameOver)
     }
 }
+
+class Make5ListenerTest {
+    @Test
+    fun `listener nhận đủ sự kiện, by chuyển onGameOver sang stats`() {
+        val stats = LoggingStats()
+        val recorder = HighScoreRecorder(HighScore(InMemoryScoreStore()))
+        val game = Game(spawner = fixedFood(Point(6, 10)), listeners = listOf(stats, recorder)).startAndRun(16)
+        assertEquals(1, stats.stats.foodsEaten)
+        assertEquals(1, stats.stats.gamesPlayed)
+        assertEquals("Ăn Táo", stats.lastEvent)
+        assertEquals(1, recorder.highScore.best)
+        assertTrue(game.state is GameState.GameOver)
+    }
+}

@@ -11,6 +11,7 @@
 ///  - State:    `state` (ready / running / paused / gameOver) quyết định tick() và input làm gì.
 ///  - Command:  `pendingTurns` giữ các lượt rẽ chờ xử lý, mỗi tick lấy ra một lượt.
 ///  - Strategy: `spawner` quyết định đặt mồi ở đâu: ngẫu nhiên khi chơi, cố định khi chạy test.
+///  - Observer: `listeners` được báo khi ăn mồi, lên màn, thua (Make 5).
 ///
 /// `Game` là struct (value type): mọi hàm làm thay đổi ván chơi đều là `mutating`.
 struct Game {
@@ -22,6 +23,9 @@ struct Game {
     /// Make 4: các màn chơi theo thứ tự.
     private let levels: [Level]
     private var levelIndex = 0
+
+    /// Make 5: những ai muốn nghe sự kiện ăn mồi, lên màn, thua (Observer).
+    private let listeners: [any GameListener]
     var level: Level { levels[levelIndex] }
     var levelNumber: Int { levelIndex + 1 }
     var width: Int { level.tiles.width }
@@ -59,9 +63,14 @@ struct Game {
     /// Số đốt rắn còn phải dài thêm (ăn táo vàng thì dài thêm 3 đốt trong 3 tick tới).
     private var pendingGrowth = 0
 
-    init(spawner: any FoodSpawner = RandomFoodSpawner(), levels: [Level] = Level.all) {
+    init(
+        spawner: any FoodSpawner = RandomFoodSpawner(),
+        levels: [Level] = Level.all,
+        listeners: [any GameListener] = []
+    ) {
         self.spawner = spawner
         self.levels = levels
+        self.listeners = listeners
         snake = Game.startSnake(height: levels[0].tiles.height)
         refillFood()
     }
@@ -165,6 +174,7 @@ struct Game {
             return
         }
         food.apply(to: &self)
+        listeners.forEach { $0.game(didEat: food) }
     }
 
     /// Đặt lại mồi thường nếu vừa bị ăn, bỏ mồi đặc biệt hết hạn, thỉnh thoảng thêm mồi đặc biệt mới.
@@ -183,6 +193,7 @@ struct Game {
         pendingGrowth = 0
         staple = nil
         bonus = nil
+        listeners.forEach { $0.game(didReach: level) }
     }
 
     private func isOutside(_ p: Point) -> Bool {
@@ -192,6 +203,7 @@ struct Game {
     private mutating func crash() {
         // TODO 4 ✓
         state = .gameOver(score: score)
+        listeners.forEach { $0.gameDidEnd(score: score) }
     }
 
     private static func startSnake(height: Int) -> Snake {

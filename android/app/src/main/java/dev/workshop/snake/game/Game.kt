@@ -14,11 +14,14 @@ package dev.workshop.snake.game
  *  - State:    `state` (Ready / Running / Paused / GameOver) quyết định tick() và input làm gì.
  *  - Command:  `pendingTurns` giữ các lượt rẽ chờ xử lý, mỗi tick lấy ra một lượt.
  *  - Strategy: `spawner` quyết định đặt mồi ở đâu: ngẫu nhiên khi chơi, cố định khi chạy test.
+ *  - Observer: `listeners` được báo khi ăn mồi, lên màn, thua (Make 5).
  */
 class Game(
     private val spawner: FoodSpawner = RandomFoodSpawner(),
     /** Make 4: các màn chơi theo thứ tự. */
     private val levels: List<Level> = Level.all,
+    /** Make 5: những ai muốn nghe sự kiện ăn mồi, lên màn, thua (Observer). */
+    private val listeners: List<GameListener> = emptyList(),
 ) {
     private var levelIndex = 0
     val level: Level get() = levels[levelIndex]
@@ -179,6 +182,7 @@ class Game(
         val food = foods.firstOrNull { it.position == next } ?: return
         if (food === staple) staple = null else bonus = null
         food.applyTo(effects)
+        listeners.forEach { it.onFoodEaten(food) }
     }
 
     /** Đặt lại mồi thường nếu vừa bị ăn, bỏ mồi đặc biệt hết hạn, thỉnh thoảng thêm mồi đặc biệt mới. */
@@ -197,6 +201,7 @@ class Game(
         pendingGrowth = 0
         staple = null
         bonus = null
+        listeners.forEach { it.onLevelUp(level) }
     }
 
     private fun isOutside(p: Point): Boolean = p.x !in 0 until width || p.y !in 0 until height
@@ -204,6 +209,7 @@ class Game(
     private fun crash() {
         // TODO 4 ✓
         state = GameState.GameOver(score)
+        listeners.forEach { it.onGameOver(score) }
     }
 
     private fun startSnake(): Snake {

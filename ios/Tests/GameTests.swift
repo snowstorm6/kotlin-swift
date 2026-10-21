@@ -261,3 +261,20 @@ struct Make4Tests {
         #expect(game.state == .gameOver(score: 0))
     }
 }
+
+@Suite("Make 5 · Observer, delegation")
+struct Make5Tests {
+    @Test("Listener nhận đủ sự kiện, LoggingStats chuyển tiếp gameDidEnd sang stats")
+    func listenersReceiveEvents() {
+        let stats = LoggingStats()
+        let recorder = HighScoreRecorder(highScore: HighScore(store: InMemoryScoreStore()))
+        var game = Game(spawner: FixedSpawner(at: Point(x: 6, y: 10)), listeners: [stats, recorder])
+        game.turn(.right)
+        for _ in 0..<16 { game.tick() }
+        #expect(stats.stats.foodsEaten == 1)
+        #expect(stats.stats.gamesPlayed == 1)
+        #expect(stats.lastEvent == "Ăn Táo")
+        #expect(recorder.highScore.best == 1)
+        #expect(game.state == .gameOver(score: 1))
+    }
+}
