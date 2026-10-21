@@ -4,6 +4,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import kotlin.io.path.createTempDirectory
 
 // Chạy: ./gradlew test (hoặc bấm ▶ cạnh tên class trong Android Studio).
 // Ở nhánh main các test TODO sẽ đỏ; làm xong TODO nào thì test của TODO đó xanh.
@@ -163,5 +165,22 @@ class Make2HighScoreTest {
     fun `ván mới bắt đầu ở tốc độ chậm nhất`() {
         val game = Game(spawner = fixedFood(null))
         assertEquals(GameRules.START_STEP_MILLIS, game.stepMillis)
+    }
+}
+
+class Make3FileScoreStoreTest {
+    @Test
+    fun `ghi rồi đọc lại đúng giá trị, tự tạo thư mục`() {
+        val file = File(createTempDirectory().toFile(), "sub/highscore.txt")
+        FileScoreStore(file).save(42)
+        assertEquals(42, FileScoreStore(file).load())
+    }
+
+    @Test
+    fun `file chưa có hoặc nội dung hỏng thì coi như 0`() {
+        val dir = createTempDirectory().toFile()
+        assertEquals(0, FileScoreStore(File(dir, "missing.txt")).load())
+        val broken = File(dir, "broken.txt").apply { writeText("không phải số") }
+        assertEquals(0, FileScoreStore(broken).load())
     }
 }

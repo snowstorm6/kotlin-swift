@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import snake
 
@@ -188,5 +189,29 @@ struct Make2Tests {
     @Test("Ván mới bắt đầu ở tốc độ chậm nhất")
     func startSpeed() {
         #expect(Game(spawner: FixedSpawner(at: nil)).stepMillis == GameRules.startStepMillis)
+    }
+}
+
+@Suite("Make 3 · guard let, throws")
+struct Make3Tests {
+    private func tempDirectory() -> URL {
+        FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    }
+
+    @Test("Ghi rồi đọc lại đúng giá trị, tự tạo thư mục")
+    func roundTrip() throws {
+        let url = tempDirectory().appending(path: "sub/highscore.txt")
+        try FileScoreStore(url: url).save(42)
+        #expect(FileScoreStore(url: url).load() == 42)
+    }
+
+    @Test("File chưa có hoặc nội dung hỏng thì coi như 0")
+    func missingOrBroken() throws {
+        let dir = tempDirectory()
+        #expect(FileScoreStore(url: dir.appending(path: "missing.txt")).load() == 0)
+        let broken = dir.appending(path: "broken.txt")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try "không phải số".write(to: broken, atomically: true, encoding: .utf8)
+        #expect(FileScoreStore(url: broken).load() == 0)
     }
 }

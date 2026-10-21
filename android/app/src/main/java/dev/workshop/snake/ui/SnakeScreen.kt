@@ -49,17 +49,19 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.workshop.snake.game.Direction
+import dev.workshop.snake.game.FileScoreStore
 import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
 import dev.workshop.snake.game.GameState
 import dev.workshop.snake.game.HighScore
-import dev.workshop.snake.game.InMemoryScoreStore
 import dev.workshop.snake.game.overlayText
+import java.io.File
 import kotlin.math.abs
 import kotlinx.coroutines.delay
 
@@ -77,7 +79,8 @@ private fun FoodLook.color() = when (this) {
 @Composable
 fun SnakeScreen() {
     val game = remember { Game() }
-    val highScore = remember { HighScore(InMemoryScoreStore()) }
+    val context = LocalContext.current
+    val highScore = remember { HighScore(FileScoreStore(File(context.filesDir, "highscore.txt"))) }
     // Game là object bình thường, Compose không tự biết nó đổi. Mỗi tick tăng `frame` để vẽ lại.
     var frame by remember { mutableLongStateOf(0L) }
     val focus = remember { FocusRequester() }

@@ -21,6 +21,7 @@
 // File tên main.swift nên code ở cấp ngoài cùng chạy từ trên xuống như hàm main().
 
 import Darwin
+import Foundation
 
 /// Ký tự ESC mở đầu mọi mã điều khiển Terminal (ANSI escape code): đổi màu, xoá màn hình, ẩn con trỏ…
 let esc = "\u{1B}"
@@ -39,7 +40,9 @@ tcsetattr(STDIN_FILENO, TCSANOW, &raw)
 print("\(esc)[?25l\(esc)[2J", terminator: "") // ẩn con trỏ, xoá màn hình
 
 var game = Game()
-var highScore = HighScore(store: InMemoryScoreStore())
+var highScore = HighScore(store: FileScoreStore(
+    url: FileManager.default.homeDirectoryForCurrentUser.appending(path: ".snake-workshop/swift-highscore.txt")
+))
 var running = true
 
 // ── B. Game loop ─────────────────────────────────────────────────────────────────

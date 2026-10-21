@@ -24,13 +24,14 @@ package dev.workshop.snake.terminal
 // được read() ở chế độ không chờ.
 
 import dev.workshop.snake.game.Direction
+import dev.workshop.snake.game.FileScoreStore
 import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
 import dev.workshop.snake.game.GameState
 import dev.workshop.snake.game.HighScore
-import dev.workshop.snake.game.InMemoryScoreStore
 import dev.workshop.snake.game.Point
 import dev.workshop.snake.game.overlayText
+import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
 
@@ -40,7 +41,8 @@ private const val ESC = "\u001b"
 fun main() {
     // ── A. Chuẩn bị ──────────────────────────────────────────────────────────────
     val game = Game()
-    val highScore = HighScore(InMemoryScoreStore())
+    // Kỷ lục lưu trong file ở thư mục home, nên tắt game mở lại vẫn còn (Make 3).
+    val highScore = HighScore(FileScoreStore(File(System.getProperty("user.home"), ".snake-workshop/kotlin-highscore.txt")))
 
     // Hàng đợi phím dùng chung giữa thread đọc phím và game loop. ConcurrentLinkedQueue an toàn khi
     // hai thread cùng đọc/ghi, không cần tự khoá.

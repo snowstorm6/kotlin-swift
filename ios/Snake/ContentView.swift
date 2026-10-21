@@ -16,7 +16,9 @@ private let snakeBodyColor = Color(red: 0.25, green: 0.64, blue: 0.30)
 struct ContentView: View {
     // Game là struct: mỗi lần tick() sửa nó, SwiftUI thấy @State đổi và vẽ lại.
     @State private var game = Game()
-    @State private var highScore = HighScore(store: InMemoryScoreStore())
+    @State private var highScore = HighScore(
+        store: FileScoreStore(url: .documentsDirectory.appending(path: "highscore.txt"))
+    )
     @FocusState private var focused: Bool
 
     var body: some View {
