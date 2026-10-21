@@ -24,6 +24,7 @@ package dev.workshop.snake.terminal
 // được read() ở chế độ không chờ.
 
 import dev.workshop.snake.game.Direction
+import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
 import dev.workshop.snake.game.Point
 import dev.workshop.snake.game.overlayText
@@ -101,8 +102,7 @@ private fun render(game: Game) {
                 when {
                     p == game.snake.head -> "$ESC[92m██$ESC[0m"
                     p in game.snake.body -> "$ESC[32m██$ESC[0m"
-                    p == game.food -> "$ESC[91m●$ESC[0m "
-                    else -> "  "
+                    else -> game.foods.firstOrNull { it.position == p }?.let { "$ESC[${it.look.ansi()}m●$ESC[0m " } ?: "  "
                 },
             )
         }
@@ -112,6 +112,12 @@ private fun render(game: Game) {
     sb.append((game.state.overlayText()?.replace("\n", " · ")?.replace("Chạm", "Space") ?: "").padEnd(50)).append("\r\n")
     print(sb)
     System.out.flush()
+}
+
+private fun FoodLook.ansi() = when (this) {
+    FoodLook.RED -> 91
+    FoodLook.GOLD -> 93
+    FoodLook.PURPLE -> 95
 }
 
 /**

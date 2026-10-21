@@ -2,7 +2,6 @@ package dev.workshop.snake.game
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -62,7 +61,7 @@ class Todo1NullSafetyTest {
     @Test
     fun `không còn chỗ đặt mồi thì vẫn chơi bình thường`() {
         val game = Game(spawner = fixedFood(null)).startAndRun(3)
-        assertNull(game.food)
+        assertTrue(game.foods.isEmpty())
         assertEquals(0, game.score)
         assertEquals(3, game.snake.body.size)
     }
@@ -113,5 +112,33 @@ class Todo4SealedTest {
         game.tick()
         assertEquals(headAfterCrash, game.snake.head)
         assertTrue(game.state.overlayText().orEmpty().startsWith("Game Over"))
+    }
+}
+
+class Make1FoodTest {
+    /** Không có mồi thường; mồi đặc biệt `bonus` xuất hiện ngay từ đầu ván. */
+    private fun bonusOnly(bonus: Food) = object : FoodSpawner {
+        override fun spawn(freeCells: List<Point>): Point? = null
+        override fun spawnBonus(freeCells: List<Point>, tick: Int): Food? = bonus.takeIf { tick == 0 }
+    }
+
+    @Test
+    fun `ăn táo vàng được 5 điểm và dài thêm 3 đốt`() {
+        val game = Game(spawner = bonusOnly(GoldenApple(Point(5, 10), expiresAt = 99))).startAndRun(4)
+        assertEquals(5, game.score)
+        assertEquals(6, game.snake.body.size)
+    }
+
+    @Test
+    fun `ăn quả teo được 2 điểm và ngắn đi nhưng còn ít nhất 2 đốt`() {
+        val game = Game(spawner = bonusOnly(ShrinkBerry(Point(5, 10), expiresAt = 99))).startAndRun(2)
+        assertEquals(2, game.score)
+        assertEquals(GameRules.MIN_SNAKE_LENGTH, game.snake.body.size)
+    }
+
+    @Test
+    fun `mồi đặc biệt tự biến mất khi hết hạn`() {
+        val game = Game(spawner = bonusOnly(GoldenApple(Point(0, 0), expiresAt = 3))).startAndRun(3)
+        assertTrue(game.foods.isEmpty())
     }
 }

@@ -81,6 +81,16 @@ while running {
 tcsetattr(STDIN_FILENO, TCSANOW, &original)
 print("\(esc)[?25h")
 
+extension FoodLook {
+    var ansi: Int {
+        switch self {
+        case .red: 91
+        case .gold: 93
+        case .purple: 95
+        }
+    }
+}
+
 /// Vẽ cả màn hình thành một chuỗi rồi in một lần. `ESC[H` đưa con trỏ về góc trên trái để vẽ đè lên
 /// khung cũ thay vì in tiếp xuống dưới, nên màn hình không bị nhấp nháy hay trôi.
 /// Trong raw mode, xuống dòng phải viết đủ `\r\n`.
@@ -95,7 +105,7 @@ func render(_ game: Game) {
             // Mỗi ô rộng 2 ký tự cho vuông. ESC[92m là chữ xanh lá sáng, ESC[0m trả về màu mặc định.
             if p == game.snake.head { s += "\(esc)[92m██\(esc)[0m" }
             else if game.snake.body.contains(p) { s += "\(esc)[32m██\(esc)[0m" }
-            else if p == game.food { s += "\(esc)[91m●\(esc)[0m " }
+            else if let food = game.foods.first(where: { $0.position == p }) { s += "\(esc)[\(food.look.ansi)m●\(esc)[0m " }
             else { s += "  " }
         }
         s += "║\r\n"

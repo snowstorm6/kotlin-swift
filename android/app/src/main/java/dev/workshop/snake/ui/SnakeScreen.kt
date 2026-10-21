@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.workshop.snake.game.Direction
+import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
 import dev.workshop.snake.game.overlayText
 import kotlin.math.abs
@@ -65,7 +66,12 @@ private val Background = Color(0xFF101418)
 private val BoardColor = Color(0xFF1B232B)
 private val SnakeHead = Color(0xFF7BE07B)
 private val SnakeBody = Color(0xFF3FA34D)
-private val FoodColor = Color(0xFFFF6B6B)
+
+private fun FoodLook.color() = when (this) {
+    FoodLook.RED -> Color(0xFFFF6B6B)
+    FoodLook.GOLD -> Color(0xFFFFD43B)
+    FoodLook.PURPLE -> Color(0xFFB57BFF)
+}
 
 @Composable
 fun SnakeScreen() {
@@ -166,7 +172,7 @@ private fun Board(game: Game, frame: Long, onTurn: (Direction) -> Unit) {
             )
 
             drawRect(BoardColor)
-            game.food?.let { drawCell(it.x, it.y, FoodColor) }
+            game.foods.forEach { drawCell(it.position.x, it.position.y, it.look.color()) }
             game.snake.body.forEachIndexed { i, p ->
                 drawCell(p.x, p.y, if (i == 0) SnakeHead else SnakeBody)
             }

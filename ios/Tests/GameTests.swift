@@ -69,7 +69,7 @@ struct Todo1Tests {
     @Test("Không còn chỗ đặt mồi thì vẫn chơi bình thường")
     func noFood() {
         let game = startedGame(ticks: 3)
-        #expect(game.food == nil)
+        #expect(game.foods.isEmpty)
         #expect(game.score == 0)
         #expect(game.snake.body.count == 3)
     }
@@ -123,5 +123,45 @@ struct Todo4Tests {
         game.tick()
         #expect(game.snake.head == headAfterCrash)
         #expect((game.state.overlayText ?? "").hasPrefix("Game Over"))
+    }
+}
+
+@Suite("Make 1 · Protocol")
+struct Make1Tests {
+    /// Không có mồi thường; mồi đặc biệt `bonus` xuất hiện ngay từ đầu ván.
+    private struct BonusOnly: FoodSpawner {
+        let bonus: any Food
+
+        func spawn(in freeCells: [Point]) -> Point? { nil }
+
+        func spawnBonus(in freeCells: [Point], tick: Int) -> (any Food)? {
+            tick == 0 ? bonus : nil
+        }
+    }
+
+    private func run(_ bonus: any Food, ticks: Int) -> Game {
+        var game = Game(spawner: BonusOnly(bonus: bonus))
+        game.turn(.right)
+        for _ in 0..<ticks { game.tick() }
+        return game
+    }
+
+    @Test("Ăn táo vàng được 5 điểm và dài thêm 3 đốt")
+    func goldenApple() {
+        let game = run(GoldenApple(position: Point(x: 5, y: 10), expiresAt: 99), ticks: 4)
+        #expect(game.score == 5)
+        #expect(game.snake.body.count == 6)
+    }
+
+    @Test("Ăn quả teo được 2 điểm và ngắn đi nhưng còn ít nhất 2 đốt")
+    func shrinkBerry() {
+        let game = run(ShrinkBerry(position: Point(x: 5, y: 10), expiresAt: 99), ticks: 2)
+        #expect(game.score == 2)
+        #expect(game.snake.body.count == GameRules.minSnakeLength)
+    }
+
+    @Test("Mồi đặc biệt tự biến mất khi hết hạn")
+    func bonusExpires() {
+        #expect(run(GoldenApple(position: Point(x: 0, y: 0), expiresAt: 3), ticks: 3).foods.isEmpty)
     }
 }

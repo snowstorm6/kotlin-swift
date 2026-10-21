@@ -14,7 +14,6 @@ private let backgroundColor = Color(red: 0.06, green: 0.08, blue: 0.09)
 private let boardColor = Color(red: 0.11, green: 0.14, blue: 0.17)
 private let snakeHeadColor = Color(red: 0.48, green: 0.88, blue: 0.48)
 private let snakeBodyColor = Color(red: 0.25, green: 0.64, blue: 0.30)
-private let foodColor = Color(red: 1.0, green: 0.42, blue: 0.42)
 
 struct ContentView: View {
     // Game là struct: mỗi lần tick() sửa nó, SwiftUI thấy @State đổi và vẽ lại.
@@ -102,7 +101,7 @@ private struct BoardView: View {
             }
 
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(boardColor))
-            if let food = game.food { drawCell(food, foodColor) }
+            for food in game.foods { drawCell(food.position, food.look.color) }
             for (i, p) in game.snake.body.enumerated() {
                 drawCell(p, i == 0 ? snakeHeadColor : snakeBodyColor)
             }
@@ -133,6 +132,16 @@ private struct DirectionPad: View {
         }
         .buttonStyle(.bordered)
         .tint(.green)
+    }
+}
+
+private extension FoodLook {
+    var color: Color {
+        switch self {
+        case .red: Color(red: 1.0, green: 0.42, blue: 0.42)
+        case .gold: Color(red: 1.0, green: 0.83, blue: 0.23)
+        case .purple: Color(red: 0.71, green: 0.48, blue: 1.0)
+        }
     }
 }
 

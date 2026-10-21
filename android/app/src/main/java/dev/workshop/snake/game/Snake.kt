@@ -15,6 +15,9 @@ data class Snake(val body: List<Point>) {
         return copy(body = listOf(newHead) + tail)
     }
 
+    /** Make 1: rắn ngắn đi `count` đốt khi ăn quả teo, nhưng không ngắn hơn `minLength`. */
+    fun shrunk(count: Int, minLength: Int): Snake = copy(body = body.take(maxOf(minLength, body.size - count)))
+
     // TODO 2 ✓ `in` gọi equals() mà data class đã sinh sẵn.
     fun hitsItself(): Boolean = head in body.drop(1)
 }
