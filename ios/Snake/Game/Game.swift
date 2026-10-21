@@ -37,6 +37,12 @@ struct Game {
     private(set) var score = 0
     private(set) var state: GameState = .ready
 
+    /// Make 2: mili giây giữa hai bước, càng nhiều điểm càng nhanh.
+    /// Giá trị suy ra được từ `score` thì để là computed property, không lưu riêng rồi đồng bộ.
+    var stepMillis: Int {
+        max(GameRules.minStepMillis, GameRules.startStepMillis - score * GameRules.speedupPerPoint)
+    }
+
     /// Command pattern: phím bấm được xếp hàng, mỗi tick xử lý đúng một phím.
     /// Nhờ vậy bấm nhanh ↑ rồi ← trong cùng một tick vẫn ra đúng hai lượt rẽ.
     private var pendingTurns: [Direction] = []

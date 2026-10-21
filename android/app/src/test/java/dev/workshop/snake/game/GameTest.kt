@@ -142,3 +142,26 @@ class Make1FoodTest {
         assertTrue(game.foods.isEmpty())
     }
 }
+
+class Make2HighScoreTest {
+    @Test
+    fun `kỷ lục chỉ tăng và được ghi xuống store`() {
+        val store = InMemoryScoreStore()
+        val highScore = HighScore(store)
+        assertTrue(highScore.submit(7))
+        assertEquals(false, highScore.submit(3))
+        assertEquals(7, highScore.best)
+        assertEquals(7, store.load())
+    }
+
+    @Test
+    fun `kỷ lục đọc lại từ store khi mở game`() {
+        assertEquals(12, HighScore(InMemoryScoreStore(12)).best)
+    }
+
+    @Test
+    fun `ván mới bắt đầu ở tốc độ chậm nhất`() {
+        val game = Game(spawner = fixedFood(null))
+        assertEquals(GameRules.START_STEP_MILLIS, game.stepMillis)
+    }
+}

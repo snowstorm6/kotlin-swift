@@ -11,8 +11,8 @@
 //            Space       → game.primaryAction()   tạm dừng / chơi tiếp / chơi lại (State)
 //            q, Esc      → thoát
 //       2. game.tick()   luật chơi chạy đúng một bước (các bước nhỏ xem ở Game.tick)
-//       3. render(game)  đọc snake, food, score, state rồi vẽ lại cả màn hình
-//       4. Ngủ tickMicros  chờ tới bước sau. Số này quyết định rắn chạy nhanh hay chậm.
+//       3. render(game)  đọc snake, foods, score, state rồi vẽ lại cả màn hình
+//       4. Ngủ game.stepMillis  chờ tới bước sau. Game quyết định nhịp, càng nhiều điểm càng nhanh.
 //
 //  C. Kết thúc: trả Terminal về như cũ, hiện lại con trỏ.
 //
@@ -21,9 +21,6 @@
 // File tên main.swift nên code ở cấp ngoài cùng chạy từ trên xuống như hàm main().
 
 import Darwin
-
-/// Micro giây giữa hai bước của game (150 ms).
-let tickMicros: UInt32 = 150_000
 
 /// Ký tự ESC mở đầu mọi mã điều khiển Terminal (ANSI escape code): đổi màu, xoá màn hình, ẩn con trỏ…
 let esc = "\u{1B}"
@@ -42,6 +39,7 @@ tcsetattr(STDIN_FILENO, TCSANOW, &raw)
 print("\(esc)[?25l\(esc)[2J", terminator: "") // ẩn con trỏ, xoá màn hình
 
 var game = Game()
+var highScore = HighScore(store: InMemoryScoreStore())
 var running = true
 
 // ── B. Game loop ─────────────────────────────────────────────────────────────────
@@ -71,10 +69,11 @@ while running {
     }
     // 2. Luật chơi chạy một bước.
     game.tick()
-    // 3. Vẽ lại.
-    render(game)
-    // 4. Chờ tới bước sau.
-    usleep(tickMicros)
+    // 3. Ghi kỷ lục nếu vừa thua, rồi vẽ lại.
+    if case .gameOver(let score) = game.state { highScore.submit(score) }
+    render(game, highScore)
+    // 4. Chờ tới bước sau. Game quyết định nhịp: càng nhiều điểm càng nhanh (Make 2).
+    usleep(UInt32(game.stepMillis * 1000))
 }
 
 // ── C. Kết thúc ──────────────────────────────────────────────────────────────────
@@ -94,9 +93,9 @@ extension FoodLook {
 /// Vẽ cả màn hình thành một chuỗi rồi in một lần. `ESC[H` đưa con trỏ về góc trên trái để vẽ đè lên
 /// khung cũ thay vì in tiếp xuống dưới, nên màn hình không bị nhấp nháy hay trôi.
 /// Trong raw mode, xuống dòng phải viết đủ `\r\n`.
-func render(_ game: Game) {
+func render(_ game: Game, _ highScore: HighScore) {
     var s = "\(esc)[H"
-    s += "Điểm: \(game.score)   (WASD / mũi tên, Space tạm dừng, q / Esc thoát)\r\n"
+    s += "Điểm: \(game.score)   Kỷ lục: \(highScore.best)   (WASD / mũi tên, Space tạm dừng, q / Esc thoát)\r\n"
     s += "╔" + String(repeating: "══", count: game.width) + "╗\r\n"
     for y in 0..<game.height {
         s += "║"

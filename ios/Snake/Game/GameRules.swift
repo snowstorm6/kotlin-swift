@@ -5,6 +5,11 @@ enum GameRules {
     static let bonusChance = 25
     static let bonusLifetime = 40
 
+    /// Tốc độ: bắt đầu 150 ms mỗi bước, mỗi điểm nhanh thêm 3 ms, nhanh nhất 60 ms.
+    static let startStepMillis = 150
+    static let minStepMillis = 60
+    static let speedupPerPoint = 3
+
     /// Rắn ngắn nhất còn lại khi ăn quả teo.
     static let minSnakeLength = 2
 }

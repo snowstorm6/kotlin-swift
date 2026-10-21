@@ -41,6 +41,14 @@ class Game(
         private set
 
     /**
+     * Make 2: mili giây giữa hai bước, càng nhiều điểm càng nhanh.
+     * Giá trị suy ra được từ `score` thì để là computed property, không lưu riêng rồi đồng bộ.
+     */
+    val stepMillis: Long
+        get() = (GameRules.START_STEP_MILLIS - score * GameRules.SPEEDUP_PER_POINT)
+            .coerceAtLeast(GameRules.MIN_STEP_MILLIS)
+
+    /**
      * Command pattern: phím bấm được xếp hàng, mỗi tick xử lý đúng một phím.
      * Nhờ vậy bấm nhanh ↑ rồi ← trong cùng một tick vẫn ra đúng hai lượt rẽ.
      */

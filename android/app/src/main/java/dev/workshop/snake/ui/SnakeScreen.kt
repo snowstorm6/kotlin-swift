@@ -5,7 +5,7 @@ package dev.workshop.snake.ui
 // Cùng một game loop như bản Terminal, chỉ khác cách làm từng bước:
 //  - Input: nút mũi tên, vuốt, phím → game.turn(hướng); chạm bàn chơi, Space → game.primaryAction().
 //    Compose gọi các callback này trên main thread, không cần thread đọc phím riêng.
-//  - Loop: một coroutine (LaunchedEffect) lặp: delay(TICK_MS) → game.tick() → frame++.
+//  - Loop: một coroutine (LaunchedEffect) lặp: delay(game.stepMillis) → game.tick() → frame++.
 //  - Vẽ: tăng `frame` làm Compose vẽ lại; Canvas đọc snake, food, state từ Game rồi vẽ.
 
 import androidx.compose.foundation.Canvas
@@ -56,11 +56,12 @@ import androidx.compose.ui.unit.sp
 import dev.workshop.snake.game.Direction
 import dev.workshop.snake.game.FoodLook
 import dev.workshop.snake.game.Game
+import dev.workshop.snake.game.GameState
+import dev.workshop.snake.game.HighScore
+import dev.workshop.snake.game.InMemoryScoreStore
 import dev.workshop.snake.game.overlayText
 import kotlin.math.abs
 import kotlinx.coroutines.delay
-
-private const val TICK_MS = 150L
 
 private val Background = Color(0xFF101418)
 private val BoardColor = Color(0xFF1B232B)
@@ -76,15 +77,17 @@ private fun FoodLook.color() = when (this) {
 @Composable
 fun SnakeScreen() {
     val game = remember { Game() }
+    val highScore = remember { HighScore(InMemoryScoreStore()) }
     // Game là object bình thường, Compose không tự biết nó đổi. Mỗi tick tăng `frame` để vẽ lại.
     var frame by remember { mutableLongStateOf(0L) }
     val focus = remember { FocusRequester() }
 
-    // Game loop: một coroutine gọi tick() mỗi TICK_MS mili giây.
+    // Game loop: một coroutine gọi tick() theo nhịp game.stepMillis.
     LaunchedEffect(game) {
         while (true) {
-            delay(TICK_MS)
+            delay(game.stepMillis)
             game.tick()
+            (game.state as? GameState.GameOver)?.let { highScore.submit(it.score) }
             frame++
         }
     }
@@ -123,7 +126,7 @@ fun SnakeScreen() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Điểm: ${game.score}",
+                text = "Điểm: ${game.score}   Kỷ lục: ${highScore.best}",
                 color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,

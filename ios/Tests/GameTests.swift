@@ -165,3 +165,28 @@ struct Make1Tests {
         #expect(run(GoldenApple(position: Point(x: 0, y: 0), expiresAt: 3), ticks: 3).foods.isEmpty)
     }
 }
+
+@Suite("Make 2 · Property wrapper")
+struct Make2Tests {
+    @Test("Kỷ lục chỉ tăng và được ghi xuống store")
+    func onlyIncreases() {
+        let store = InMemoryScoreStore()
+        var highScore = HighScore(store: store)
+        let first = highScore.submit(7)
+        let second = highScore.submit(3)
+        #expect(first)
+        #expect(!second)
+        #expect(highScore.best == 7)
+        #expect(store.load() == 7)
+    }
+
+    @Test("Kỷ lục đọc lại từ store khi mở game")
+    func loadsFromStore() {
+        #expect(HighScore(store: InMemoryScoreStore(12)).best == 12)
+    }
+
+    @Test("Ván mới bắt đầu ở tốc độ chậm nhất")
+    func startSpeed() {
+        #expect(Game(spawner: FixedSpawner(at: nil)).stepMillis == GameRules.startStepMillis)
+    }
+}

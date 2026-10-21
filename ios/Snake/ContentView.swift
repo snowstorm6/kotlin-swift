@@ -3,12 +3,10 @@
 // Cùng một game loop như bản Terminal, chỉ khác cách làm từng bước:
 //  - Input: nút mũi tên, vuốt, phím → game.turn(hướng); chạm bàn chơi, Space → game.primaryAction().
 //    SwiftUI gọi các closure này trên main thread, không cần thread đọc phím riêng.
-//  - Loop: một Task (.task) lặp: sleep 150 ms → game.tick().
+//  - Loop: một Task (.task) lặp: sleep game.stepMillis → game.tick().
 //  - Vẽ: Game là struct trong @State, tick() sửa nó nên SwiftUI tự vẽ lại body.
 
 import SwiftUI
-
-private let tickInterval: Duration = .milliseconds(150)
 
 private let backgroundColor = Color(red: 0.06, green: 0.08, blue: 0.09)
 private let boardColor = Color(red: 0.11, green: 0.14, blue: 0.17)
@@ -18,11 +16,12 @@ private let snakeBodyColor = Color(red: 0.25, green: 0.64, blue: 0.30)
 struct ContentView: View {
     // Game là struct: mỗi lần tick() sửa nó, SwiftUI thấy @State đổi và vẽ lại.
     @State private var game = Game()
+    @State private var highScore = HighScore(store: InMemoryScoreStore())
     @FocusState private var focused: Bool
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Điểm: \(game.score)")
+            Text("Điểm: \(game.score)   Kỷ lục: \(highScore.best)")
                 .font(.title2.bold())
                 .foregroundStyle(.white)
 
@@ -72,11 +71,12 @@ struct ContentView: View {
             return .handled
         }
         .onAppear { focused = true }
-        // Game loop: một Task gọi tick() mỗi 150 ms, tự huỷ khi view biến mất.
+        // Game loop: một Task gọi tick() theo nhịp game.stepMillis, tự huỷ khi view biến mất.
         .task {
             while !Task.isCancelled {
-                try? await Task.sleep(for: tickInterval)
+                try? await Task.sleep(for: .milliseconds(game.stepMillis))
                 game.tick()
+                if case .gameOver(let score) = game.state { highScore.submit(score) }
             }
         }
     }

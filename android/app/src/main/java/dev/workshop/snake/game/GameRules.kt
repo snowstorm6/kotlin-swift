@@ -6,6 +6,11 @@ object GameRules {
     const val BONUS_CHANCE = 25
     const val BONUS_LIFETIME = 40
 
+    /** Tốc độ: bắt đầu 150 ms mỗi bước, mỗi điểm nhanh thêm 3 ms, nhanh nhất 60 ms. */
+    const val START_STEP_MILLIS = 150L
+    const val MIN_STEP_MILLIS = 60L
+    const val SPEEDUP_PER_POINT = 3L
+
     /** Rắn ngắn nhất còn lại khi ăn quả teo. */
     const val MIN_SNAKE_LENGTH = 2
 }
