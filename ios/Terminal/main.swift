@@ -99,13 +99,15 @@ extension FoodLook {
 func render(_ game: Game, _ highScore: HighScore) {
     var s = "\(esc)[H"
     s += "Điểm: \(game.score)   Kỷ lục: \(highScore.best)   (WASD / mũi tên, Space tạm dừng, q / Esc thoát)\r\n"
+    s += "Màn \(game.levelNumber) · \(game.level.name)\(esc)[K\r\n"
     s += "╔" + String(repeating: "══", count: game.width) + "╗\r\n"
     for y in 0..<game.height {
         s += "║"
         for x in 0..<game.width {
             let p = Point(x: x, y: y)
             // Mỗi ô rộng 2 ký tự cho vuông. ESC[92m là chữ xanh lá sáng, ESC[0m trả về màu mặc định.
-            if p == game.snake.head { s += "\(esc)[92m██\(esc)[0m" }
+            if game.level.walls.contains(p) { s += "\(esc)[90m▓▓\(esc)[0m" }
+            else if p == game.snake.head { s += "\(esc)[92m██\(esc)[0m" }
             else if game.snake.body.contains(p) { s += "\(esc)[32m██\(esc)[0m" }
             else if let food = game.foods.first(where: { $0.position == p }) { s += "\(esc)[\(food.look.ansi)m●\(esc)[0m " }
             else { s += "  " }

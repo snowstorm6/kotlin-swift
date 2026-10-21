@@ -11,6 +11,9 @@ object GameRules {
     const val MIN_STEP_MILLIS = 60L
     const val SPEEDUP_PER_POINT = 3L
 
+    /** Mỗi màn cần thêm chừng này điểm để sang màn sau. */
+    const val POINTS_PER_LEVEL = 10
+
     /** Rắn ngắn nhất còn lại khi ăn quả teo. */
     const val MIN_SNAKE_LENGTH = 2
 }

@@ -215,3 +215,49 @@ struct Make3Tests {
         #expect(FileScoreStore(url: broken).load() == 0)
     }
 }
+
+@Suite("Make 4 · Generic")
+struct Make4Tests {
+    /// Táo lần lượt hiện ở các ô cho trước.
+    private final class PathSpawner: FoodSpawner {
+        private var path: [Point]
+
+        init(_ path: [Point]) {
+            self.path = path
+        }
+
+        func spawn(in freeCells: [Point]) -> Point? {
+            guard !path.isEmpty else { return nil }
+            let next = path.removeFirst()
+            return freeCells.contains(next) ? next : nil
+        }
+    }
+
+    @Test("Đọc màn chơi từ text")
+    func parseLevel() {
+        let level = Level(name: "Thử", text: "#..\n...\n..#")
+        #expect(level.tiles.width == 3)
+        #expect(level.tiles.height == 3)
+        #expect(level.walls == [Point(x: 0, y: 0), Point(x: 2, y: 2)])
+    }
+
+    @Test("Đủ điểm thì sang màn sau, rắn về chỗ xuất phát")
+    func levelUp() {
+        var game = Game(spawner: PathSpawner((5...14).map { Point(x: $0, y: 10) }))
+        game.turn(.right)
+        for _ in 0..<10 { game.tick() }
+        #expect(game.score == 10)
+        #expect(game.levelNumber == 2)
+        #expect(game.snake.head == startHead)
+    }
+
+    @Test("Đâm tường trong màn thì thua")
+    func hitsWall() {
+        let rows = (0..<20).map { $0 == 10 ? "......#............." : String(repeating: ".", count: 20) }
+        var game = Game(spawner: FixedSpawner(at: nil), levels: [Level(name: "Tường", text: rows.joined(separator: "\n"))])
+        game.turn(.right)
+        game.tick()
+        game.tick()
+        #expect(game.state == .gameOver(score: 0))
+    }
+}

@@ -67,6 +67,7 @@ import kotlinx.coroutines.delay
 
 private val Background = Color(0xFF101418)
 private val BoardColor = Color(0xFF1B232B)
+private val WallColor = Color(0xFF5C6773)
 private val SnakeHead = Color(0xFF7BE07B)
 private val SnakeBody = Color(0xFF3FA34D)
 
@@ -134,6 +135,11 @@ fun SnakeScreen() {
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
             )
+            Text(
+                text = "Màn ${game.levelNumber} · ${game.level.name}",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 16.sp,
+            )
             Board(game = game, frame = frame, onTurn = ::turn)
             DirectionPad(onTurn = ::turn)
         }
@@ -178,6 +184,7 @@ private fun Board(game: Game, frame: Long, onTurn: (Direction) -> Unit) {
             )
 
             drawRect(BoardColor)
+            game.level.walls.forEach { drawCell(it.x, it.y, WallColor) }
             game.foods.forEach { drawCell(it.position.x, it.position.y, it.look.color()) }
             game.snake.body.forEachIndexed { i, p ->
                 drawCell(p.x, p.y, if (i == 0) SnakeHead else SnakeBody)

@@ -10,6 +10,7 @@ import SwiftUI
 
 private let backgroundColor = Color(red: 0.06, green: 0.08, blue: 0.09)
 private let boardColor = Color(red: 0.11, green: 0.14, blue: 0.17)
+private let wallColor = Color(red: 0.36, green: 0.40, blue: 0.45)
 private let snakeHeadColor = Color(red: 0.48, green: 0.88, blue: 0.48)
 private let snakeBodyColor = Color(red: 0.25, green: 0.64, blue: 0.30)
 
@@ -26,6 +27,10 @@ struct ContentView: View {
             Text("Điểm: \(game.score)   Kỷ lục: \(highScore.best)")
                 .font(.title2.bold())
                 .foregroundStyle(.white)
+
+            Text("Màn \(game.levelNumber) · \(game.level.name)")
+                .font(.callout)
+                .foregroundStyle(.white.opacity(0.7))
 
             BoardView(game: game)
                 .aspectRatio(CGFloat(game.width) / CGFloat(game.height), contentMode: .fit)
@@ -103,6 +108,7 @@ private struct BoardView: View {
             }
 
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(boardColor))
+            for wall in game.level.walls { drawCell(wall, wallColor) }
             for food in game.foods { drawCell(food.position, food.look.color) }
             for (i, p) in game.snake.body.enumerated() {
                 drawCell(p, i == 0 ? snakeHeadColor : snakeBodyColor)

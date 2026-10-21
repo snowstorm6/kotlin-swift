@@ -10,6 +10,9 @@ enum GameRules {
     static let minStepMillis = 60
     static let speedupPerPoint = 3
 
+    /// Mỗi màn cần thêm chừng này điểm để sang màn sau.
+    static let pointsPerLevel = 10
+
     /// Rắn ngắn nhất còn lại khi ăn quả teo.
     static let minSnakeLength = 2
 }

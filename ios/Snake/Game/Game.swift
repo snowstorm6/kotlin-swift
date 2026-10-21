@@ -17,9 +17,15 @@ struct Game {
     private static let startLength = 3
     private static let maxPendingTurns = 2
 
-    let width: Int
-    let height: Int
     private let spawner: any FoodSpawner
+
+    /// Make 4: các màn chơi theo thứ tự.
+    private let levels: [Level]
+    private var levelIndex = 0
+    var level: Level { levels[levelIndex] }
+    var levelNumber: Int { levelIndex + 1 }
+    var width: Int { level.tiles.width }
+    var height: Int { level.tiles.height }
 
     private(set) var snake: Snake
 
@@ -53,11 +59,10 @@ struct Game {
     /// Số đốt rắn còn phải dài thêm (ăn táo vàng thì dài thêm 3 đốt trong 3 tick tới).
     private var pendingGrowth = 0
 
-    init(width: Int = 20, height: Int = 20, spawner: any FoodSpawner = RandomFoodSpawner()) {
-        self.width = width
-        self.height = height
+    init(spawner: any FoodSpawner = RandomFoodSpawner(), levels: [Level] = Level.all) {
         self.spawner = spawner
-        snake = Game.startSnake(height: height)
+        self.levels = levels
+        snake = Game.startSnake(height: levels[0].tiles.height)
         refillFood()
     }
 
@@ -95,8 +100,10 @@ struct Game {
     ///  3. eat(_:): ô ngay trước đầu rắn có mồi thì mồi đó tự áp hiệu ứng: cộng điểm, dài thêm
     ///     hoặc ngắn lại (TODO 1, Make 1).
     ///  4. move(_:grow:): rắn tiến một ô. Còn đốt phải dài thêm (pendingGrowth) thì giữ lại đuôi.
-    ///  5. Va chạm: đầu ra ngoài lưới hoặc tự cắn mình (TODO 2) thì crash(), chuyển sang gameOver (TODO 4).
-    ///     Không va chạm thì refillFood(): đặt lại mồi thường, bỏ mồi đặc biệt hết hạn, có khi thêm mồi mới.
+    ///  5. Va chạm: đầu ra ngoài lưới, đâm tường của màn (Make 4) hoặc tự cắn mình (TODO 2)
+    ///     thì crash(), chuyển sang gameOver (TODO 4) và dừng tick ở đây.
+    ///  6. Đủ điểm thì nextLevel() sang màn sau (Make 4).
+    ///  7. refillFood(): đặt lại mồi thường, bỏ mồi đặc biệt hết hạn, có khi thêm mồi mới.
     mutating func tick() {
         // 1.
         guard state == .running else { return }
@@ -112,11 +119,19 @@ struct Game {
 
         // 5.
         // TODO 2 ✓
-        if isOutside(snake.head) || snake.hitsItself() { crash() } else { refillFood() }
+        if isOutside(snake.head) || level.walls.contains(snake.head) || snake.hitsItself() {
+            crash()
+            return
+        }
+        // 6.
+        if score >= GameRules.pointsPerLevel * levelNumber, levelIndex < levels.count - 1 { nextLevel() }
+        // 7.
+        refillFood()
     }
 
     /// Về lại màn chờ với rắn mới, điểm 0, mồi mới.
     mutating func restart() {
+        levelIndex = 0
         snake = Game.startSnake(height: height)
         direction = .right
         pendingTurns.removeAll()
@@ -159,6 +174,17 @@ struct Game {
         if bonus == nil { bonus = spawner.spawnBonus(in: freeCells(), tick: ticks) }
     }
 
+    /// Make 4: sang màn tiếp theo, rắn về chỗ xuất phát, điểm giữ nguyên.
+    private mutating func nextLevel() {
+        levelIndex += 1
+        snake = Game.startSnake(height: height)
+        direction = .right
+        pendingTurns.removeAll()
+        pendingGrowth = 0
+        staple = nil
+        bonus = nil
+    }
+
     private func isOutside(_ p: Point) -> Bool {
         !(0..<width).contains(p.x) || !(0..<height).contains(p.y)
     }
@@ -174,7 +200,7 @@ struct Game {
     }
 
     private func freeCells() -> [Point] {
-        let occupied = Set(snake.body).union(foods.map(\.position))
+        let occupied = Set(snake.body).union(foods.map(\.position)).union(level.walls)
         return (0..<height).flatMap { y in (0..<width).map { x in Point(x: x, y: y) } }
             .filter { !occupied.contains($0) }
     }

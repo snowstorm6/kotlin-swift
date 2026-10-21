@@ -96,6 +96,7 @@ fun main() {
 private fun render(game: Game, highScore: HighScore) {
     val sb = StringBuilder("$ESC[H")
     sb.append("Điểm: ${game.score}   Kỷ lục: ${highScore.best}   (WASD / mũi tên, Space tạm dừng, q / Esc thoát)\r\n")
+    sb.append("Màn ${game.levelNumber} · ${game.level.name}$ESC[K\r\n")
     sb.append("╔").append("══".repeat(game.width)).append("╗\r\n")
     for (y in 0 until game.height) {
         sb.append("║")
@@ -104,6 +105,7 @@ private fun render(game: Game, highScore: HighScore) {
             // Mỗi ô rộng 2 ký tự cho vuông. ESC[92m là chữ xanh lá sáng, ESC[0m trả về màu mặc định.
             sb.append(
                 when {
+                    p in game.level.walls -> "$ESC[90m▓▓$ESC[0m"
                     p == game.snake.head -> "$ESC[92m██$ESC[0m"
                     p in game.snake.body -> "$ESC[32m██$ESC[0m"
                     else -> game.foods.firstOrNull { it.position == p }?.let { "$ESC[${it.look.ansi()}m●$ESC[0m " } ?: "  "

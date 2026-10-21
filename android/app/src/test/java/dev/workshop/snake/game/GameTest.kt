@@ -184,3 +184,30 @@ class Make3FileScoreStoreTest {
         assertEquals(0, FileScoreStore(broken).load())
     }
 }
+
+class Make4LevelTest {
+    @Test
+    fun `đọc màn chơi từ text`() {
+        val level = Level.parse("Thử", "#..\n...\n..#")
+        assertEquals(3, level.tiles.width)
+        assertEquals(3, level.tiles.height)
+        assertEquals(setOf(Point(0, 0), Point(2, 2)), level.walls)
+    }
+
+    @Test
+    fun `đủ điểm thì sang màn sau, rắn về chỗ xuất phát`() {
+        // Táo lần lượt hiện ngay trước mặt rắn: ăn liền 10 quả trong 10 bước.
+        val path = ArrayDeque((5..14).map { Point(it, 10) })
+        val game = Game(spawner = { free -> path.removeFirstOrNull()?.takeIf { it in free } }).startAndRun(10)
+        assertEquals(10, game.score)
+        assertEquals(2, game.levelNumber)
+        assertEquals(startHead, game.snake.head)
+    }
+
+    @Test
+    fun `đâm tường trong màn thì thua`() {
+        val walled = Level.parse("Tường", (0 until 20).joinToString("\n") { y -> if (y == 10) "......#............." else ".".repeat(20) })
+        val game = Game(spawner = fixedFood(null), levels = listOf(walled)).startAndRun(2)
+        assertTrue(game.state is GameState.GameOver)
+    }
+}

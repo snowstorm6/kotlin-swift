@@ -16,10 +16,16 @@ package dev.workshop.snake.game
  *  - Strategy: `spawner` quyết định đặt mồi ở đâu: ngẫu nhiên khi chơi, cố định khi chạy test.
  */
 class Game(
-    val width: Int = 20,
-    val height: Int = 20,
     private val spawner: FoodSpawner = RandomFoodSpawner(),
+    /** Make 4: các màn chơi theo thứ tự. */
+    private val levels: List<Level> = Level.all,
 ) {
+    private var levelIndex = 0
+    val level: Level get() = levels[levelIndex]
+    val levelNumber: Int get() = levelIndex + 1
+    val width: Int get() = level.tiles.width
+    val height: Int get() = level.tiles.height
+
     var snake: Snake = startSnake()
         private set
 
@@ -116,8 +122,10 @@ class Game(
      *  3. eat(): ô ngay trước đầu rắn có mồi thì mồi đó tự áp hiệu ứng: cộng điểm, dài thêm
      *     hoặc ngắn lại (TODO 1, Make 1).
      *  4. move(): rắn tiến một ô. Còn đốt phải dài thêm (pendingGrowth) thì giữ lại đuôi.
-     *  5. Va chạm: đầu ra ngoài lưới hoặc tự cắn mình (TODO 2) thì crash(), chuyển sang GameOver (TODO 4).
-     *     Không va chạm thì refillFood(): đặt lại mồi thường, bỏ mồi đặc biệt hết hạn, có khi thêm mồi mới.
+     *  5. Va chạm: đầu ra ngoài lưới, đâm tường của màn (Make 4) hoặc tự cắn mình (TODO 2)
+     *     thì crash(), chuyển sang GameOver (TODO 4) và dừng tick ở đây.
+     *  6. Đủ điểm thì nextLevel() sang màn sau (Make 4).
+     *  7. refillFood(): đặt lại mồi thường, bỏ mồi đặc biệt hết hạn, có khi thêm mồi mới.
      */
     fun tick() {
         // 1.
@@ -134,11 +142,19 @@ class Game(
 
         // 5.
         // TODO 2 ✓
-        if (isOutside(snake.head) || snake.hitsItself()) crash() else refillFood()
+        if (isOutside(snake.head) || snake.head in level.walls || snake.hitsItself()) {
+            crash()
+            return
+        }
+        // 6.
+        if (score >= GameRules.POINTS_PER_LEVEL * levelNumber && levelIndex < levels.lastIndex) nextLevel()
+        // 7.
+        refillFood()
     }
 
     /** Về lại màn chờ với rắn mới, điểm 0, mồi mới. */
     fun restart() {
+        levelIndex = 0
         snake = startSnake()
         direction = Direction.RIGHT
         pendingTurns.clear()
@@ -172,6 +188,17 @@ class Game(
         if (bonus == null) bonus = spawner.spawnBonus(freeCells(), ticks)
     }
 
+    /** Make 4: sang màn tiếp theo, rắn về chỗ xuất phát, điểm giữ nguyên. */
+    private fun nextLevel() {
+        levelIndex++
+        snake = startSnake()
+        direction = Direction.RIGHT
+        pendingTurns.clear()
+        pendingGrowth = 0
+        staple = null
+        bonus = null
+    }
+
     private fun isOutside(p: Point): Boolean = p.x !in 0 until width || p.y !in 0 until height
 
     private fun crash() {
@@ -185,7 +212,7 @@ class Game(
     }
 
     private fun freeCells(): List<Point> {
-        val occupied = snake.body.toSet() + foods.map { it.position }
+        val occupied = snake.body.toSet() + foods.map { it.position } + level.walls
         return (0 until height).flatMap { y -> (0 until width).map { x -> Point(x, y) } }
             .filterNot { it in occupied }
     }
