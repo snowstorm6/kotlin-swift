@@ -89,8 +89,8 @@ struct Game {
         snake.move(direction, grow: grow)
 
         // 5.
-        // TODO 2 (Data model): nếu đầu rắn ra ngoài lưới hoặc tự cắn mình (Snake.hitsItself)
-        //  thì gọi crash(). Hiện giờ rắn đi xuyên ra ngoài màn hình.
+        // TODO 2 ✓
+        if isOutside(snake.head) || snake.hitsItself() { crash() }
     }
 
     /// Về lại màn chờ với rắn mới, điểm 0, mồi mới.
@@ -118,6 +118,10 @@ struct Game {
         score += 1
         self.food = spawnFood()
         return true
+    }
+
+    private func isOutside(_ p: Point) -> Bool {
+        !(0..<width).contains(p.x) || !(0..<height).contains(p.y)
     }
 
     private mutating func crash() {

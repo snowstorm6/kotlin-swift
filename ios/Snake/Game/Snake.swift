@@ -12,8 +12,8 @@ struct Snake {
         if !grow { body.removeLast() }
     }
 
-    // TODO 2 (Data model): trả về true khi đầu rắn trùng với một đốt thân (không tính chính cái đầu).
+    // TODO 2 ✓ `contains` dùng `==` mà Equatable đã sinh sẵn.
     func hitsItself() -> Bool {
-        false
+        body.dropFirst().contains(head)
     }
 }

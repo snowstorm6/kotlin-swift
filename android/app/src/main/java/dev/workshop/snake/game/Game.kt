@@ -91,8 +91,8 @@ class Game(
         snake = snake.move(direction, grow)
 
         // 5.
-        // TODO 2 (Data model): nếu đầu rắn ra ngoài lưới hoặc tự cắn mình (Snake.hitsItself)
-        //  thì gọi crash(). Hiện giờ rắn đi xuyên ra ngoài màn hình.
+        // TODO 2 ✓
+        if (isOutside(snake.head) || snake.hitsItself()) crash()
     }
 
     /** Về lại màn chờ với rắn mới, điểm 0, mồi mới. */
@@ -121,6 +121,8 @@ class Game(
         food = spawnFood()
         return true
     }
+
+    private fun isOutside(p: Point): Boolean = p.x !in 0 until width || p.y !in 0 until height
 
     private fun crash() {
         // TODO 4 (Sealed): thay vì về lại màn chờ ngay, chuyển state sang GameOver kèm số điểm.

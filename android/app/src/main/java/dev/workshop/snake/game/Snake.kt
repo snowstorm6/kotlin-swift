@@ -15,6 +15,6 @@ data class Snake(val body: List<Point>) {
         return copy(body = listOf(newHead) + tail)
     }
 
-    // TODO 2 (Data model): trả về true khi đầu rắn trùng với một đốt thân (không tính chính cái đầu).
-    fun hitsItself(): Boolean = false
+    // TODO 2 ✓ `in` gọi equals() mà data class đã sinh sẵn.
+    fun hitsItself(): Boolean = head in body.drop(1)
 }
