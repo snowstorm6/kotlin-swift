@@ -8,6 +8,11 @@ enum class Direction(val dx: Int, val dy: Int) {
     RIGHT(1, 0),
 }
 
-// TODO 3 (Extension): viết extension property `opposite` cho Direction,
-//  trả về hướng ngược lại (UP ↔ DOWN, LEFT ↔ RIGHT). Không sửa enum ở trên.
-//  Sau đó dùng nó trong Game.applyNextTurn().
+// TODO 3 ✓ Extension: thêm property cho enum có sẵn mà không sửa enum.
+val Direction.opposite: Direction
+    get() = when (this) {
+        Direction.UP -> Direction.DOWN
+        Direction.DOWN -> Direction.UP
+        Direction.LEFT -> Direction.RIGHT
+        Direction.RIGHT -> Direction.LEFT
+    }

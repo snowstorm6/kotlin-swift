@@ -19,6 +19,14 @@ enum Direction {
     }
 }
 
-// TODO 3 (Extension): viết `extension Direction` thêm computed property `opposite`,
-//  trả về hướng ngược lại (up ↔ down, left ↔ right). Không sửa enum ở trên.
-//  Sau đó dùng nó trong Game.applyNextTurn().
+// TODO 3 ✓ Extension: thêm property cho enum có sẵn mà không sửa enum.
+extension Direction {
+    var opposite: Direction {
+        switch self {
+        case .up: .down
+        case .down: .up
+        case .left: .right
+        case .right: .left
+        }
+    }
+}

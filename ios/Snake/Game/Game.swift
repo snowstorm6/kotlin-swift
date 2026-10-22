@@ -106,9 +106,8 @@ struct Game {
     private mutating func applyNextTurn() {
         guard !pendingTurns.isEmpty else { return }
         let newDirection = pendingTurns.removeFirst()
-        // TODO 3: rắn đang đi sang phải mà rẽ trái thì nó tự cắn cổ mình.
-        //  Bỏ qua lượt rẽ nếu newDirection là hướng ngược với direction (dùng extension ở Direction.swift).
-        direction = newDirection
+        // TODO 3 ✓
+        if newDirection != direction.opposite { direction = newDirection }
     }
 
     /// Trả về true nếu ô `next` đang có mồi: cộng điểm, đặt mồi mới.
