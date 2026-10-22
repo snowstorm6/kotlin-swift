@@ -113,10 +113,11 @@ struct Game {
 
     /// Trả về true nếu ô `next` đang có mồi: cộng điểm, đặt mồi mới.
     private mutating func tryEat(_ next: Point) -> Bool {
-        // TODO 1 (Null safety): `food` có kiểu Point? nên có thể nil.
-        //  Nếu không có mồi, hoặc mồi không nằm ở `next`, trả về false.
-        //  Ngược lại: score + 1, food = spawnFood(), trả về true.
-        return false
+        // TODO 1 ✓ `guard let` giống `?: return` bên Kotlin.
+        guard let food, food == next else { return false }
+        score += 1
+        self.food = spawnFood()
+        return true
     }
 
     private mutating func crash() {

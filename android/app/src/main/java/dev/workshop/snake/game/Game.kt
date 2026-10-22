@@ -114,10 +114,12 @@ class Game(
 
     /** Trả về true nếu ô `next` đang có mồi: cộng điểm, đặt mồi mới. */
     private fun tryEat(next: Point): Boolean {
-        // TODO 1 (Null safety): `food` có kiểu Point? nên có thể null.
-        //  Nếu không có mồi, hoặc mồi không nằm ở `next`, trả về false.
-        //  Ngược lại: score + 1, food = spawnFood(), trả về true.
-        return false
+        // TODO 1 ✓ `?: return` giống `guard let ... else { return }` bên Swift.
+        val current = food ?: return false
+        if (current != next) return false
+        score += 1
+        food = spawnFood()
+        return true
     }
 
     private fun crash() {
