@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Android / Gradle
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+captures/
+
+# Xcode
+ios/build/
+ios/DerivedData/
+xcuserdata/
+*.xcuserstate
+ios/.build/
+ios/.swiftpm/
+android/terminal/build/
+android/gradle/gradle-daemon-jvm.properties
