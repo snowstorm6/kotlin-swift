@@ -67,7 +67,7 @@ struct Game {
         switch state {
         case .ready: break
         case .running, .paused: pauseOrResume()
-        // TODO 4: thêm gameOver xong, `switch` này cũng báo thiếu case. Thua rồi thì restart().
+        case .gameOver: restart()
         }
     }
 
@@ -124,8 +124,8 @@ struct Game {
     }
 
     private mutating func crash() {
-        // TODO 4 (Enum): thay vì về lại màn chờ ngay, chuyển state sang .gameOver kèm số điểm.
-        restart()
+        // TODO 4 ✓
+        state = .gameOver(score: score)
     }
 
     private static func startSnake(height: Int) -> Snake {

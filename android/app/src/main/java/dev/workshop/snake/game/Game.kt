@@ -67,7 +67,7 @@ class Game(
         when (state) {
             GameState.Ready -> Unit
             GameState.Running, GameState.Paused -> pauseOrResume()
-            // TODO 4: thêm GameOver xong, `when` này cũng báo thiếu nhánh. Thua rồi thì restart().
+            is GameState.GameOver -> restart()
         }
     }
 
@@ -124,8 +124,8 @@ class Game(
     private fun isOutside(p: Point): Boolean = p.x !in 0 until width || p.y !in 0 until height
 
     private fun crash() {
-        // TODO 4 (Sealed): thay vì về lại màn chờ ngay, chuyển state sang GameOver kèm số điểm.
-        restart()
+        // TODO 4 ✓
+        state = GameState.GameOver(score)
     }
 
     private fun startSnake(): Snake {

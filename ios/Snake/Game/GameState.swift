@@ -7,7 +7,8 @@ enum GameState: Equatable {
     case running
     case paused
 
-    // TODO 4 (Enum): thêm case gameOver mang theo số điểm cuối cùng (associated value).
+    // TODO 4 ✓ Một case mang dữ liệu đi kèm.
+    case gameOver(score: Int)
 }
 
 extension GameState {
@@ -20,8 +21,8 @@ extension GameState {
             nil
         case .paused:
             "Tạm dừng\nChạm để chơi tiếp"
-        // TODO 4: thêm case cho gameOver, ví dụ "Game Over · 7 điểm\nChạm để chơi lại".
-        //  Thêm case ở trên xong, `switch` này sẽ báo lỗi cho tới khi bạn xử lý đủ mọi trường hợp.
+        case .gameOver(let score):
+            "Game Over · \(score) điểm\nChạm để chơi lại"
         }
     }
 }
